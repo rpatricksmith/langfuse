@@ -10,6 +10,8 @@ import type {
   GetDatasetRunsV1Query,
   GetDatasetsV2Query,
   GetDatasetV2Query,
+  PostDatasetsV1Body,
+  PostDatasetsV2Body,
   PostDatasetItemsV1Body,
 } from "@/src/features/public-api/types/datasets";
 import {
@@ -24,6 +26,7 @@ import {
   Prisma,
 } from "@langfuse/shared";
 import { prisma } from "@langfuse/shared/src/db";
+import { upsertDataset } from "./actions/createDataset";
 import {
   addToDeleteDatasetQueue,
   createDatasetItemFilterState,
@@ -56,6 +59,13 @@ type GetDatasetInput = z.infer<typeof GetDatasetV2Query> & {
 
 type GetDatasetV1Input = z.infer<typeof GetDatasetV1Query> & {
   projectId: string;
+};
+
+type CreateDatasetInput = {
+  input:
+    | z.infer<typeof PostDatasetsV1Body>
+    | z.infer<typeof PostDatasetsV2Body>;
+  auditScope: DatasetAuditScope;
 };
 
 type ListDatasetItemsInput = z.infer<typeof GetDatasetItemsV1Query> & {
@@ -144,6 +154,60 @@ const getDatasetRunRecordOrThrow = async ({
   }
 
   return datasetRuns[0];
+};
+
+const withAuditLock = async <T>(lockKey: string, fn: () => Promise<T>) => {
+  return await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`;
+    return await fn();
+  });
+};
+
+export const createDatasetForApi = async ({
+  input,
+  auditScope,
+}: CreateDatasetInput) => {
+  return await withAuditLock(
+    `dataset:${auditScope.projectId}:${input.name}`,
+    async () => {
+      const existingDataset = await prisma.dataset.findUnique({
+        where: {
+          projectId_name: {
+            projectId: auditScope.projectId,
+            name: input.name,
+          },
+        },
+      });
+
+      const dataset = await upsertDataset({
+        input: {
+          name: input.name,
+          description: input.description ?? undefined,
+          metadata: input.metadata ?? undefined,
+          inputSchema: input.inputSchema,
+          expectedOutputSchema: input.expectedOutputSchema,
+        },
+        projectId: auditScope.projectId,
+      });
+
+      const isUpdate =
+        existingDataset !== null ||
+        dataset.createdAt.getTime() !== dataset.updatedAt.getTime();
+
+      await auditLog({
+        action: isUpdate ? "update" : "create",
+        resourceType: "dataset",
+        resourceId: dataset.id,
+        projectId: auditScope.projectId,
+        orgId: auditScope.orgId,
+        apiKeyId: auditScope.apiKeyId,
+        before: existingDataset ?? undefined,
+        after: dataset,
+      });
+
+      return transformDbDatasetToAPIDataset(dataset);
+    },
+  );
 };
 
 export const listDatasetsForApi = async ({
@@ -386,66 +450,83 @@ export const createDatasetItemForApi = async ({
   input,
   auditScope,
 }: CreateDatasetItemInput) => {
-  try {
-    const datasetItem = await upsertDatasetItem({
-      projectId: auditScope.projectId,
-      datasetName: input.datasetName,
-      datasetItemId: input.id ?? undefined,
-      input: input.input ?? undefined,
-      expectedOutput: input.expectedOutput ?? undefined,
-      metadata: input.metadata ?? undefined,
-      sourceTraceId: input.sourceTraceId ?? undefined,
-      sourceObservationId: input.sourceObservationId ?? undefined,
-      status: input.status ?? undefined,
-      normalizeOpts: { sanitizeControlChars: true },
-      validateOpts: { normalizeUndefinedToNull: !!input.id ? false : true },
-    });
+  return await withAuditLock(
+    `dataset-item:${auditScope.projectId}:${input.id ?? input.datasetName}`,
+    async () => {
+      try {
+        const existingDatasetItem = input.id
+          ? await getDatasetItemById({
+              projectId: auditScope.projectId,
+              datasetItemId: input.id,
+            })
+          : null;
 
-    await auditLog({
-      action: "create",
-      resourceType: "datasetItem",
-      resourceId: datasetItem.id,
-      projectId: auditScope.projectId,
-      orgId: auditScope.orgId,
-      apiKeyId: auditScope.apiKeyId,
-      after: datasetItem,
-    });
+        const datasetItem = await upsertDatasetItem({
+          projectId: auditScope.projectId,
+          datasetName: input.datasetName,
+          datasetItemId: input.id ?? undefined,
+          input: input.input ?? undefined,
+          expectedOutput: input.expectedOutput ?? undefined,
+          metadata: input.metadata ?? undefined,
+          sourceTraceId: input.sourceTraceId ?? undefined,
+          sourceObservationId: input.sourceObservationId ?? undefined,
+          status: input.status ?? undefined,
+          normalizeOpts: { sanitizeControlChars: true },
+          validateOpts: { normalizeUndefinedToNull: !!input.id ? false : true },
+        });
 
-    return transformDbDatasetItemDomainToAPIDatasetItem({
-      ...datasetItem,
-      datasetName: input.datasetName,
-      status: datasetItem.status ?? "ACTIVE",
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        // this case happens when a dataset item was created for a different dataset.
-        // In the database, the uniqueness constraint is on (id, projectId) only.
-        // When this constraint is violated, the database will upsert based on (id, projectId, datasetId).
-        // If this record does not exist, the database will throw an error.
-        logger.warn(
-          `Failed to upsert dataset item. Dataset item ${input.id} already exists for a different dataset than ${input.datasetName}`,
-        );
-        throw new LangfuseNotFoundError(
-          `The dataset item with id ${input.id} already exists in a dataset other than ${input.datasetName}`,
-        );
+        const isUpdate =
+          existingDatasetItem !== null ||
+          datasetItem.createdAt.getTime() !== datasetItem.updatedAt.getTime();
+
+        await auditLog({
+          action: isUpdate ? "update" : "create",
+          resourceType: "datasetItem",
+          resourceId: datasetItem.id,
+          projectId: auditScope.projectId,
+          orgId: auditScope.orgId,
+          apiKeyId: auditScope.apiKeyId,
+          before: existingDatasetItem ?? undefined,
+          after: datasetItem,
+        });
+
+        return transformDbDatasetItemDomainToAPIDatasetItem({
+          ...datasetItem,
+          datasetName: input.datasetName,
+          status: datasetItem.status ?? "ACTIVE",
+        });
+      } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === "P2025") {
+            // this case happens when a dataset item was created for a different dataset.
+            // In the database, the uniqueness constraint is on (id, projectId) only.
+            // When this constraint is violated, the database will upsert based on (id, projectId, datasetId).
+            // If this record does not exist, the database will throw an error.
+            logger.warn(
+              `Failed to upsert dataset item. Dataset item ${input.id} already exists for a different dataset than ${input.datasetName}`,
+            );
+            throw new LangfuseNotFoundError(
+              `The dataset item with id ${input.id} already exists in a dataset other than ${input.datasetName}`,
+            );
+          }
+
+          if (error.code === "P2002") {
+            // Unique constraint violation on (id, projectId, validFrom).
+            // This can happen when concurrent requests try to update the same dataset item
+            // and create versions with the same timestamp.
+            logger.warn(
+              `Failed to upsert dataset item due to version conflict. Dataset item ${input.id} was modified concurrently.`,
+            );
+            throw new LangfuseConflictError(
+              `Dataset item ${input.id ?? "new"} was modified concurrently. Please retry the request.`,
+            );
+          }
+        }
+
+        throw error;
       }
-
-      if (error.code === "P2002") {
-        // Unique constraint violation on (id, projectId, validFrom).
-        // This can happen when concurrent requests try to update the same dataset item
-        // and create versions with the same timestamp.
-        logger.warn(
-          `Failed to upsert dataset item due to version conflict. Dataset item ${input.id} was modified concurrently.`,
-        );
-        throw new LangfuseConflictError(
-          `Dataset item ${input.id ?? "new"} was modified concurrently. Please retry the request.`,
-        );
-      }
-    }
-
-    throw error;
-  }
+    },
+  );
 };
 
 export const deleteDatasetItemForApi = async ({

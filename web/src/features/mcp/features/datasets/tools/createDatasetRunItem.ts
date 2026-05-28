@@ -21,7 +21,10 @@ export const [createDatasetRunItemTool, handleCreateDatasetRunItem] =
         },
         fn: async () => {
           const auth = await getMcpPublicApiAuth(context);
-          return await createDatasetRunItemForApi({ body: input, auth });
+          return await createDatasetRunItemForApi({
+            body: input,
+            auth,
+          });
         },
       }),
   });

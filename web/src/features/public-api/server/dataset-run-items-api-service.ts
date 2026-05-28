@@ -2,6 +2,7 @@ import { v4 } from "uuid";
 import type { NextApiResponse } from "next";
 import type { z } from "zod";
 
+import { auditLog } from "@/src/features/audit-logs/auditLog";
 import { addDatasetRunItemsToEvalQueue } from "@/src/features/evals/server/addDatasetRunItemsToEvalQueue";
 import { createOrFetchDatasetRun } from "@/src/features/public-api/server/dataset-runs";
 import {
@@ -36,6 +37,18 @@ const resolveMetadata = (metadata: JSONValue): Record<string, unknown> => {
     return metadata as Record<string, unknown>;
   }
   return { metadata };
+};
+
+const getRequiredApiAuditScope = (
+  auth: AuthHeaderValidVerificationResultIngestion,
+) => {
+  const { orgId, apiKeyId } = auth.scope;
+
+  if (!orgId || !apiKeyId) {
+    throw new UnauthorizedError("Missing API key audit scope");
+  }
+
+  return { orgId, apiKeyId };
 };
 
 export const createDatasetRunItemForApi = async ({
@@ -153,17 +166,6 @@ export const createDatasetRunItemForApi = async ({
     throw new Error("Failed to create dataset run item");
   }
 
-  /***********************
-   * ASYNC RUN ITEM EVAL *
-   ***********************/
-  await addDatasetRunItemsToEvalQueue({
-    projectId,
-    datasetItemId: datasetItem.id,
-    datasetItemValidFrom: datasetItem.validFrom,
-    traceId: finalTraceId,
-    observationId: observationId ?? undefined,
-  });
-
   const datasetRunItem: APIDatasetRunItem = {
     id: event.body.id,
     datasetRunId: run.id,
@@ -174,6 +176,29 @@ export const createDatasetRunItemForApi = async ({
     createdAt,
     updatedAt: createdAt,
   };
+
+  const { orgId, apiKeyId } = getRequiredApiAuditScope(auth);
+
+  await auditLog({
+    action: "create",
+    resourceType: "datasetRunItem",
+    resourceId: datasetRunItem.id,
+    projectId,
+    orgId,
+    apiKeyId,
+    after: datasetRunItem,
+  });
+
+  /***********************
+   * ASYNC RUN ITEM EVAL *
+   ***********************/
+  await addDatasetRunItemsToEvalQueue({
+    projectId,
+    datasetItemId: datasetItem.id,
+    datasetItemValidFrom: datasetItem.validFrom,
+    traceId: finalTraceId,
+    observationId: observationId ?? undefined,
+  });
 
   return PostDatasetRunItemsV1Response.parse(datasetRunItem);
 };

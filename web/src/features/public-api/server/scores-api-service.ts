@@ -10,6 +10,7 @@ import { auditLog } from "@/src/features/audit-logs/auditLog";
 import {
   InternalServerError,
   LISTABLE_SCORE_TYPES,
+  UnauthorizedError,
   type ScoreSourceType,
   type PostScoresBodyV1,
 } from "@langfuse/shared";
@@ -23,6 +24,18 @@ import {
 } from "@langfuse/shared/src/server";
 import type { z } from "zod";
 
+const getRequiredApiAuditScope = (
+  auth: AuthHeaderValidVerificationResultIngestion,
+) => {
+  const { projectId, orgId, apiKeyId } = auth.scope;
+
+  if (!projectId || !orgId || !apiKeyId) {
+    throw new UnauthorizedError("Missing API key audit scope");
+  }
+
+  return { projectId, orgId, apiKeyId };
+};
+
 export class ScoresApiService {
   constructor(private readonly apiVersion: "v1" | "v2") {}
 
@@ -35,6 +48,16 @@ export class ScoresApiService {
     auth: AuthHeaderValidVerificationResultIngestion;
     scoreId?: string;
   }) {
+    const { projectId, orgId, apiKeyId } = getRequiredApiAuditScope(auth);
+    const existingScore = await _handleGetScoreById({
+      projectId,
+      scoreId,
+      scoreScope: this.apiVersion === "v1" ? "traces_only" : "all",
+      scoreDataTypes:
+        this.apiVersion === "v1" ? LISTABLE_SCORE_TYPES : undefined,
+      preferredClickhouseService: "ReadOnly",
+    });
+
     const result = await processEventBatch(
       [
         {
@@ -46,6 +69,21 @@ export class ScoresApiService {
       ],
       auth,
     );
+
+    if (result.errors.length === 0 && result.successes.length === 1) {
+      await auditLog({
+        action: existingScore ? "update" : "create",
+        resourceType: "score",
+        resourceId: scoreId,
+        projectId,
+        orgId,
+        apiKeyId,
+        before: existingScore
+          ? convertScoreToPublicApi(existingScore)
+          : undefined,
+        after: { ...body, id: scoreId },
+      });
+    }
 
     return { id: scoreId, result };
   }
