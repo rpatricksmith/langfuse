@@ -186,8 +186,8 @@ importers:
         specifier: ^12.26.0
         version: 12.26.0
       '@clickhouse/client':
-        specifier: ^1.18.5
-        version: 1.18.5
+        specifier: head
+        version: 1.19.0-head.ee91a12.1
       '@google-cloud/storage':
         specifier: ^7.19.0
         version: 7.19.0
@@ -1579,11 +1579,11 @@ packages:
   '@chevrotain/types@11.1.2':
     resolution: {integrity: sha512-U+HFai5+zmJCkK86QsaJtoITlboZHBqrVketcO2ROv865xfCMSFpELQoz1GkX5GzME8pTa+3kbKrZHQtI0gdbw==}
 
-  '@clickhouse/client-common@1.18.5':
-    resolution: {integrity: sha512-g9LwcS1dvkatKDsIjT1PwUHldsiYzwdKAB0nXfd9APLd+t4PrNJa+my+dXcqJdmcWyhWjKLP/2/ztBwgxp+sbQ==}
+  '@clickhouse/client-common@1.19.0-head.ee91a12.1':
+    resolution: {integrity: sha512-DHNc5vfghPy4LCLveCMOa6ThQzombDN/d32SRud/kypPFI6eS692BFCBvNhw3qAtKPHF1WaQ1gHWt/obzfXFhw==}
 
-  '@clickhouse/client@1.18.5':
-    resolution: {integrity: sha512-4FfoyMkFWhsdNMuXsoEL6l3c12svA63BBJBtDo9SrxRZ14RdmN6jLr/rF3f84BK8cFoxETZCSeKlsbk6NNYebw==}
+  '@clickhouse/client@1.19.0-head.ee91a12.1':
+    resolution: {integrity: sha512-tUdGlBqdtgaYi5m2oVF78MWgaXkswlleiGgD533O6Wc+jjCQ/0qZVmDkyHP3j3CtYZO4O8GqFj2micWwx3HM4Q==}
     engines: {node: '>=16'}
 
   '@codemirror/autocomplete@6.17.0':
@@ -11825,11 +11825,11 @@ snapshots:
 
   '@chevrotain/types@11.1.2': {}
 
-  '@clickhouse/client-common@1.18.5': {}
+  '@clickhouse/client-common@1.19.0-head.ee91a12.1': {}
 
-  '@clickhouse/client@1.18.5':
+  '@clickhouse/client@1.19.0-head.ee91a12.1':
     dependencies:
-      '@clickhouse/client-common': 1.18.5
+      '@clickhouse/client-common': 1.19.0-head.ee91a12.1
 
   '@codemirror/autocomplete@6.17.0(@codemirror/language@6.12.3)(@codemirror/state@6.6.0)(@codemirror/view@6.42.0)(@lezer/common@1.5.1)':
     dependencies:
