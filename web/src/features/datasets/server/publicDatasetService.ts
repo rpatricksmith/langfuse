@@ -44,6 +44,7 @@ type DatasetAuditScope = {
 
 type ListDatasetsInput = z.infer<typeof GetDatasetsV2Query> & {
   projectId: string;
+  name?: string;
 };
 
 type ListDatasetsV1Input = z.infer<typeof GetDatasetsV1Query> & {
@@ -106,6 +107,29 @@ const getDatasetByNameOrThrow = async ({
   return dataset;
 };
 
+const getDatasetByIdOrThrow = async ({
+  projectId,
+  datasetId,
+}: {
+  projectId: string;
+  datasetId: string;
+}) => {
+  const dataset = await prisma.dataset.findUnique({
+    where: {
+      id_projectId: {
+        id: datasetId,
+        projectId,
+      },
+    },
+  });
+
+  if (!dataset) {
+    throw new LangfuseNotFoundError("Dataset not found");
+  }
+
+  return dataset;
+};
+
 const getDatasetRunRecordOrThrow = async ({
   projectId,
   datasetName,
@@ -148,9 +172,15 @@ const getDatasetRunRecordOrThrow = async ({
 
 export const listDatasetsForApi = async ({
   projectId,
+  name,
   page,
   limit,
 }: ListDatasetsInput) => {
+  const where: Prisma.DatasetWhereInput = {
+    projectId,
+    ...(name ? { name: { contains: name, mode: "insensitive" } } : {}),
+  };
+
   const [datasets, totalItems] = await Promise.all([
     prisma.dataset.findMany({
       select: {
@@ -164,12 +194,12 @@ export const listDatasetsForApi = async ({
         updatedAt: true,
         id: true,
       },
-      where: { projectId },
+      where,
       orderBy: [{ createdAt: "desc" }, { id: "asc" }],
       take: limit,
       skip: (page - 1) * limit,
     }),
-    prisma.dataset.count({ where: { projectId } }),
+    prisma.dataset.count({ where }),
   ]);
 
   return {
@@ -189,6 +219,28 @@ export const getDatasetForApi = async ({
 }: GetDatasetInput) => {
   const dataset = await getDatasetByNameOrThrow({ projectId, datasetName });
   return transformDbDatasetToAPIDataset(dataset);
+};
+
+export const getDatasetByIdForApi = async ({
+  projectId,
+  datasetId,
+}: {
+  projectId: string;
+  datasetId: string;
+}) => {
+  const dataset = await getDatasetByIdOrThrow({ projectId, datasetId });
+  return transformDbDatasetToAPIDataset(dataset);
+};
+
+export const getDatasetNameByIdForApi = async ({
+  projectId,
+  datasetId,
+}: {
+  projectId: string;
+  datasetId: string;
+}) => {
+  const dataset = await getDatasetByIdOrThrow({ projectId, datasetId });
+  return dataset.name;
 };
 
 export const listDatasetsByProjectForApi = async ({
