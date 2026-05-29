@@ -4,5 +4,49 @@
   "scope": {
     "saved_at": "2026-05-29T04:31:03.840Z",
     "hash": "sha256:f705f909297e64d7366ef037ea0829c2f5657a48206b3beafa0828e7285385e2"
+  },
+  "plan_started_at": "2026-05-29T04:32:30.031Z",
+  "plan_agent": "ana-plan",
+  "contract": {
+    "saved_at": "2026-05-29T04:37:35.313Z",
+    "hash": "sha256:1de2ee5dac58ca846467842ce4d857d22e908e543daed743494bc4f645d2d8cf"
+  },
+  "plan": {
+    "saved_at": "2026-05-29T04:37:35.314Z",
+    "hash": "sha256:73014d9c66fe31ba9a967af3bb1150a78ba703c784e0c90bd1f6adef24c0e194"
+  },
+  "spec": {
+    "saved_at": "2026-05-29T04:37:35.314Z",
+    "hash": "sha256:c9031f707932057ef91d25262ee0441c7d2045cbc1e2e9000e6e1f5c44b2e6b1"
+  },
+  "build_started_at": "2026-05-29T04:39:26.660Z",
+  "build_agent": "ana-build",
+  "build-report": {
+    "saved_at": "2026-05-29T04:43:50.080Z",
+    "hash": "sha256:17a235e6f67d4b9f708e6eed3dbfff0fb5ad982a02cf4d1635141cbf03951d8c"
+  },
+  "build-data": {
+    "saved_at": "2026-05-29T04:43:50.081Z",
+    "hash": "sha256:5bcfb975b7af01279d80abee0845c46a85facb6984193303a00df0c48e7420ff"
+  },
+  "modules_touched": [
+    "worker/src/__tests__/evalService.test.ts",
+    "worker/src/features/evaluation/evalService.ts"
+  ],
+  "commit_hygiene": [],
+  "verify_started_at": "2026-05-29T04:45:47.245Z",
+  "verify_agent": "ana-verify",
+  "pre-check": {
+    "seal": "INTACT",
+    "seal_hash": "sha256:1de2ee5dac58ca846467842ce4d857d22e908e543daed743494bc4f645d2d8cf",
+    "run_at": "2026-05-29T04:48:53.868Z"
+  },
+  "verify-report": {
+    "saved_at": "2026-05-29T04:48:53.901Z",
+    "hash": "sha256:32b02e4171a79950ef9f7e0b4769dabd22a35d503aa483964b7aa2ec5fb46bc8"
+  },
+  "verify-data": {
+    "saved_at": "2026-05-29T04:48:53.901Z",
+    "hash": "sha256:5c35b512fdb3f5a228d77466089a6b5804cf0473bd885e91a46208e37acf8c61"
   }
 }
