@@ -1,0 +1,65 @@
+version: "1.0"
+sealed_by: "AnaPlan"
+feature: "Fix eval job dedup to exclude cancelled and errored executions"
+
+assertions:
+  - id: A001
+    says: "A cancelled evaluation job does not block the trace from being re-evaluated"
+    block: "creates a new eval job after a cancelled job when trace re-matches"
+    target: "jobs.length"
+    matcher: "equals"
+    value: 2
+
+  - id: A002
+    says: "The re-created job after cancellation starts in pending status"
+    block: "creates a new eval job after a cancelled job when trace re-matches"
+    target: "pendingJob.status"
+    matcher: "equals"
+    value: "PENDING"
+
+  - id: A003
+    says: "The original cancelled job is preserved alongside the new one"
+    block: "creates a new eval job after a cancelled job when trace re-matches"
+    target: "cancelledJob.status"
+    matcher: "equals"
+    value: "CANCELLED"
+
+  - id: A004
+    says: "A failed evaluation job does not block the trace from being re-evaluated"
+    block: "creates a new eval job after an errored job when trace event arrives"
+    target: "jobs.length"
+    matcher: "equals"
+    value: 2
+
+  - id: A005
+    says: "The re-created job after an error starts in pending status"
+    block: "creates a new eval job after an errored job when trace event arrives"
+    target: "pendingJob.status"
+    matcher: "equals"
+    value: "PENDING"
+
+  - id: A006
+    says: "The original errored job is preserved alongside the new one"
+    block: "creates a new eval job after an errored job when trace event arrives"
+    target: "errorJob.status"
+    matcher: "equals"
+    value: "ERROR"
+
+  - id: A007
+    says: "A pending evaluation job still blocks duplicate job creation"
+    block: "cancels a job if the second event deselects"
+    target: "jobs.length"
+    matcher: "equals"
+    value: 1
+
+  - id: A008
+    says: "The dedup query filters by status to exclude terminal failures"
+    block: "dedup query includes status filter"
+    target: "statusFilter"
+    matcher: "exists"
+
+file_changes:
+  - path: "worker/src/features/evaluation/evalService.ts"
+    action: modify
+  - path: "worker/src/__tests__/evalService.test.ts"
+    action: modify
