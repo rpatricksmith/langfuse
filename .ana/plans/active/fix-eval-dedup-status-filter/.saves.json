@@ -33,5 +33,20 @@
     "worker/src/__tests__/evalService.test.ts",
     "worker/src/features/evaluation/evalService.ts"
   ],
-  "commit_hygiene": []
+  "commit_hygiene": [],
+  "verify_started_at": "2026-05-29T04:45:47.245Z",
+  "verify_agent": "ana-verify",
+  "pre-check": {
+    "seal": "INTACT",
+    "seal_hash": "sha256:1de2ee5dac58ca846467842ce4d857d22e908e543daed743494bc4f645d2d8cf",
+    "run_at": "2026-05-29T04:48:53.868Z"
+  },
+  "verify-report": {
+    "saved_at": "2026-05-29T04:48:53.901Z",
+    "hash": "sha256:32b02e4171a79950ef9f7e0b4769dabd22a35d503aa483964b7aa2ec5fb46bc8"
+  },
+  "verify-data": {
+    "saved_at": "2026-05-29T04:48:53.901Z",
+    "hash": "sha256:5c35b512fdb3f5a228d77466089a6b5804cf0473bd885e91a46208e37acf8c61"
+  }
 }

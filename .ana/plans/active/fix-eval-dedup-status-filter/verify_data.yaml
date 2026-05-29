@@ -1,0 +1,31 @@
+schema: 1
+findings:
+  - category: test
+    summary: "No explicit test for DELAYED or COMPLETED status blocking dedup"
+    file: "worker/src/__tests__/evalService.test.ts"
+    severity: debt
+    suggested_action: scope
+    related_assertions: ["A007"]
+  - category: code
+    summary: "Fragile 500ms sleeps in new tests — race-prone on slow CI"
+    file: "worker/src/__tests__/evalService.test.ts"
+    line: 1434
+    severity: observation
+    suggested_action: accept
+  - category: code
+    summary: "Dedup query race condition — concurrent trace-upsert events could both pass the notIn filter before either creates a job"
+    file: "worker/src/features/evaluation/evalService.ts"
+    line: 342
+    severity: risk
+    suggested_action: monitor
+  - category: test
+    summary: "ERROR test uses updateMany without projectId+status scoping — correct due to test isolation but pattern is fragile if test fixtures evolve"
+    file: "worker/src/__tests__/evalService.test.ts"
+    line: 1537
+    severity: observation
+    suggested_action: accept
+  - category: code
+    summary: "Test setup duplicates ~60 lines of boilerplate (LLM key, template, config creation) identically across both new tests — could extract helper"
+    file: "worker/src/__tests__/evalService.test.ts"
+    severity: debt
+    suggested_action: accept
