@@ -32,11 +32,23 @@
         "lint": "(cd 'worker' && pnpm run lint)",
         "dev": null
       }
+    },
+    "shared": {
+      "path": "packages/shared",
+      "language": "TypeScript",
+      "framework": null,
+      "commands": {
+        "test": "(cd 'packages/shared' && pnpm run test)",
+        "build": "(cd 'packages/shared' && pnpm run build)",
+        "lint": "(cd 'packages/shared' && pnpm run lint)",
+        "dev": null
+      }
     }
   },
   "coAuthor": "Ana <build@anatomia.dev>",
   "artifactBranch": "main",
   "branchPrefix": "feature/",
   "lastScanAt": "2026-05-29T00:55:31.583Z",
+  "setupPhase": "complete",
   "custom": {}
 }
