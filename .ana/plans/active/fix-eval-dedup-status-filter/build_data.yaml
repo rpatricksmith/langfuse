@@ -1,0 +1,6 @@
+schema: 1
+concerns:
+  - summary: "evalService tests require real DB infrastructure — 2 new tests unverifiable locally"
+    file: "worker/src/__tests__/evalService.test.ts"
+    severity: observation
+    suggested_action: accept

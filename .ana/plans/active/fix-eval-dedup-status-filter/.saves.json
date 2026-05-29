@@ -18,5 +18,20 @@
   "spec": {
     "saved_at": "2026-05-29T04:37:35.314Z",
     "hash": "sha256:c9031f707932057ef91d25262ee0441c7d2045cbc1e2e9000e6e1f5c44b2e6b1"
-  }
+  },
+  "build_started_at": "2026-05-29T04:39:26.660Z",
+  "build_agent": "ana-build",
+  "build-report": {
+    "saved_at": "2026-05-29T04:43:50.080Z",
+    "hash": "sha256:17a235e6f67d4b9f708e6eed3dbfff0fb5ad982a02cf4d1635141cbf03951d8c"
+  },
+  "build-data": {
+    "saved_at": "2026-05-29T04:43:50.081Z",
+    "hash": "sha256:5bcfb975b7af01279d80abee0845c46a85facb6984193303a00df0c48e7420ff"
+  },
+  "modules_touched": [
+    "worker/src/__tests__/evalService.test.ts",
+    "worker/src/features/evaluation/evalService.ts"
+  ],
+  "commit_hygiene": []
 }
