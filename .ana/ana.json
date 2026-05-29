@@ -1,0 +1,42 @@
+{
+  "anaVersion": "1.1.5",
+  "name": "langfuse",
+  "language": "TypeScript",
+  "framework": "Next.js",
+  "packageManager": "pnpm",
+  "commands": {
+    "build": "pnpm run build",
+    "test": "pnpm run test -- --run",
+    "lint": "pnpm run lint",
+    "dev": "pnpm run dev"
+  },
+  "surfaces": {
+    "web": {
+      "path": "web",
+      "language": "TypeScript",
+      "framework": "Next.js",
+      "commands": {
+        "build": "(cd 'web' && pnpm run build)",
+        "test": "(cd 'web' && pnpm run test)",
+        "lint": "(cd 'web' && pnpm run lint)",
+        "dev": null
+      }
+    },
+    "worker": {
+      "path": "worker",
+      "language": "TypeScript",
+      "framework": null,
+      "commands": {
+        "build": "(cd 'worker' && pnpm run build)",
+        "test": "(cd 'worker' && pnpm run test)",
+        "lint": "(cd 'worker' && pnpm run lint)",
+        "dev": null
+      }
+    }
+  },
+  "coAuthor": "Ana <build@anatomia.dev>",
+  "artifactBranch": "main",
+  "branchPrefix": "feature/",
+  "lastScanAt": "2026-05-29T00:55:31.583Z",
+  "custom": {}
+}
