@@ -13,7 +13,7 @@ description: "Invoke when debugging failures, diagnosing unexpected behavior, or
 - **Tests hang indefinitely** — Vitest defaults to watch mode. Pass `--run` flag.
 
 ## Rules
-- **Pages Router, not App Router.** This is Next.js 14 with pages router. Routing, API handling, and data fetching all follow pages router patterns. New contributors constantly assume App Router — `getServerSideProps`, `pages/api/` routes, and `_app.tsx` are the correct patterns here, not `app/` directory, Server Actions, or route.ts handlers.
+- **Primarily Pages Router, not App Router.** This is Next.js 14 with pages router for UI and most APIs. A few API routes use App Router (`web/src/app/api/` — in-app-agent, chatCompletion, stripe-webhook) but these are exceptions. New contributors constantly assume App Router — `getServerSideProps`, `pages/api/` routes, and `_app.tsx` are the correct default patterns.
 - **tRPC for internal frontend APIs, Fern-generated REST for external APIs.** Two completely different API systems. tRPC routes (`web/src/server/api/routers/`) serve the frontend via React Query. Public REST endpoints (`web/src/pages/api/public/`) serve external clients (SDKs, integrations). Don't add tRPC routes for things that should be public REST endpoints, or vice versa.
 - **ee/ folder has different licensing — it is NOT MIT.** Accidentally moving MIT code into `ee/` or referencing `ee/` code from the OSS side changes licensing implications. Keep the boundary clean. OSS code must never import from `@langfuse/ee`.
 - **CLA bot gets stuck sometimes after signing.** Known cla-assistant bug. Comment `/check-cla` on the PR to retrigger it.

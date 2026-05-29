@@ -20,7 +20,7 @@ description: "Invoke when implementing features, writing code, or reviewing code
 ### Library Rules
 - All local imports use `.js` extensions (`import { foo } from "./bar.js"`). TypeScript compiles without them but ESM resolution crashes at runtime.
 - Use `import type` for type-only imports, separate from value imports. Prevents runtime imports of pure types.
-- This project uses Next.js Pages Router (not App Router). There are no Server Components or `"use client"` directives. Data fetching uses `getServerSideProps`, routing uses `pages/` directory, and API routes live in `pages/api/`.
+- This project is primarily Next.js Pages Router. UI rendering, data fetching (`getServerSideProps`), and most API routes use `pages/` directory and `pages/api/`. A small number of API routes use App Router (`web/src/app/api/` — in-app-agent, chatCompletion, stripe-webhook). Don't add new App Router routes without reason — Pages Router is the standard.
 
 ## Rules
 - Prefer named exports. Default exports only where the framework requires them (e.g., Next.js pages, layouts).
@@ -34,7 +34,7 @@ description: "Invoke when implementing features, writing code, or reviewing code
 - Scope all data queries to the authorized context (`projectId`, `orgId`). A query without ownership scoping is an IDOR vulnerability. The tRPC middleware provides `ctx.session.projectId` — always use it.
 
 ## Gotchas
-- This is Pages Router, not App Router. Don't use `app/` directory patterns, Server Actions, or `route.ts` handlers. Use `pages/api/` for API routes and `getServerSideProps` for server-side data fetching.
+- Primarily Pages Router. Don't default to App Router patterns. Use `pages/api/` for new API routes and `getServerSideProps` for server-side data fetching. The few App Router routes in `web/src/app/api/` are exceptions, not the pattern to follow.
 
 ## Examples
 *Not yet captured. Add short snippets showing the RIGHT way.*
